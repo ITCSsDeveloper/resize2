@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Resize</title>
+    <link href="./bootstrap.min.css" rel="stylesheet" />
+    <link href="./dropzone.min.css" rel="stylesheet" />
+    <link href="./styles.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container-fluid my-4">
+        <br />
+        <h1 class="text-center mb-4">Image Resize</h1>
+        <div class="row column-container g-4">
+            <div class="col-lg-4 col-md-12 column">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Input Images</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div id="image-dropzone"
+                            class="dropzone d-flex justify-content-center align-items-center flex-grow-1">
+                            <div class="dz-message needsclick">
+                                <h4 class="text-secondary">
+                                    Drag & Drop images here or click to upload
+                                </h4>
+                                <p class="text-muted">(Supports multiple image files)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-12 column">
+                <div class="card h-100">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Settings & Convert</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column justify-content-center">
+                        <div class="mb-3">
+                            <label for="resize-size" class="form-label">Resize to (Mpx):</label>
+                            <select id="resize-size" class="form-select">
+                                <option value="2">2 M</option>
+                                <option value="4">4 M</option>
+                                <option value="6">6 M</option>
+                                <option value="8">8 M</option>
+                                <option value="10">10 M</option>
+                                <option value="12">12 M</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="jpeg-quality" class="form-label">JPEG Quality (%):</label>
+                            <select id="jpeg-quality" class="form-select">
+                                <option value="100">100%</option>
+                                <option value="80">80%</option>
+                                <option value="75">75%</option>
+                                <option value="50">50%</option>
+                                <option value="25">25%</option>
+                            </select>
+                        </div>
+                        <button id="convert-button" class="btn btn-success btn-lg mt-auto">
+                            <span id="convert-spinner" class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span>
+                            <span id="convert-text">Convert</span>
+                        </button>
+                        <hr />
+                        <div class="mb-3 text-center">
+                            <label class="form-label">Quick Convert:</label>
+                            <button id="fb-ig-convert-btn" class="btn btn-primary btn-lg w-100 mb-2">
+                                For Facebook &amp; IG (2048px)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-12 column">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">Output & Download</h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div id="output-previews" class="flex-grow-1 overflow-auto p-2 border rounded"
+                            style="max-height: 500px">
+                            <p class="text-muted text-center">
+                                Resized images will appear here...
+                            </p>
+                        </div>
+                        <button id="save-all-button" class="btn btn-info btn-lg mt-3" style="display: none">
+                            <span id="save-spinner" class="spinner-border spinner-border-sm d-none" role="status"
+                                aria-hidden="true"></span>
+                            <span id="save-text">Download All (.zip)</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center py-3 mt-5">
+        <div class="d-flex justify-content-center align-items-center gap-2">
+            <img src="./GitHub-Mark.png" alt="GitHub Logo"
+                width="28" height="28" style="vertical-align: middle" />
+            <span class="ms-2">Powered by GitHub Copilot &copy; 2025</span>
+        </div>
+    </footer>
+
+    <script src="./bootstrap.bundle.min.js"></script>
+    <script src="./dropzone.min.js"></script>
+    <script src="./jszip.min.js"></script>
+    <script src="./FileSaver.min.js"></script>
+    <script src="./app.js"></script>
+</body>
+
+</html>
