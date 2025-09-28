@@ -26,7 +26,6 @@ This is a fast, privacy-focused web application built with HTML, Bootstrap, and 
 | **File Upload** | **Dropzone.js** | Handling drag-and-drop and file queue management |
 
 -----
------
 
 ## 🛠️ Contributing
 
