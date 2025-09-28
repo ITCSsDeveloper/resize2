@@ -4,6 +4,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="Resize images online for free! Quickly adjust the size and dimensions of JPG, PNG, and WebP files to fit any social media or web requirements. Start now!">
+    <meta name="robots" content="noindex, nofollow">
     <title>Image Resize</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -275,6 +278,18 @@
 </head>
 
 <body>
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="processing-error-toast" class="toast align-items-center text-bg-danger border-0" role="alert"
+            aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+            <div class="d-flex">
+                <div class="toast-body" id="toast-message-body">
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"
+                    aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+
     <div class="container-fluid my-4">
         <br />
         <h1 class="text-center mb-4">Image Resize</h1>
@@ -295,7 +310,8 @@
                             </div>
                         </div>
                         <div>
-                            <label class="form-label mt-3">You've selected <span class="text-muted" id="count_select">0 </span> files</label>
+                            <p id="count_select">You've selected 0/0 files.</p>
+                            <p id="file_warning_message"></p>
                         </div>
                         <div>
                             <label class="form-label mt-3">Supported formats include:</label><br>
@@ -370,10 +386,12 @@
         </div>
     </div>
 
-    <footer class="text-center py-3 mt-5">
-        <div class="d-flex justify-content-center align-items-center gap-2">
-            <img src="./GitHub-Mark.png" alt="GitHub Logo" width="28" height="28" style="vertical-align: middle" />
-            <span class="ms-2">Powered by GitHub Copilot &copy; 2025</span>
+    <footer class="text-center py-4 mt-5">
+        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-3">
+            <div>
+                <span class="fw-semibold text-primary">itcss-dev.com</span><br>
+                <span class="text-secondary">&copy; 2025</span>
+            </div>
         </div>
     </footer>
 
@@ -385,17 +403,51 @@
     <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <script>
 
+
         Dropzone.autoDiscover = false;
-        const FILE_LIMIT = 100;
+        const FILE_LIMIT = 30; // กำหนดจำนวนไฟล์สูงสุดที่อนุญาตให้อัปโหลด
         const uploadedFiles = []; // Stores the original uploaded files
         const convertedFiles = [];  // Stores objects with { file: File, dataUrl: String }
         const IMAGE_EXTENSIONS_ARRAY = [".jpg", ".jpeg", ".png", ".webp"]; // สร้าง Array สำหรับเก็บนามสกุลไฟล์
 
+        function showErrorToast(message) {
+            const toastElement = document.getElementById('processing-error-toast');
+            const toastBody = document.getElementById('toast-message-body');
+
+            if (toastElement && toastBody) {
+                toastBody.textContent = message;
+                const toast = new bootstrap.Toast(toastElement);
+                toast.show();
+            }
+        }
+
         // ฟังก์ชันสำหรับอัปเดตจำนวนไฟล์ที่อัปโหลด
         function updateFileCount() {
             const countElement = document.getElementById('count_select');
+            const warningElement = document.getElementById('file_warning_message');
+            const currentCount = uploadedFiles.length;
+
             if (countElement) {
-                countElement.textContent = uploadedFiles.length;
+                // อัปเดตข้อความหลัก: You've selected 8/100 files
+                countElement.textContent = `You've selected ${currentCount}/${FILE_LIMIT} files.`;
+
+                if (currentCount > FILE_LIMIT) {
+                    // เกิน Limit: ทำข้อความให้เป็นสีแดง
+                    countElement.style.color = 'red';
+
+                    // แสดงข้อความเตือน
+                    if (warningElement) {
+                        warningElement.innerHTML = `
+                    <span class="text-bg-danger">Warning: Large file counts (${currentCount} files) are not recommended as they may slow down processing and could potentially cause system unresponsiveness.</span>
+                `;
+                    }
+                } else {
+                    // อยู่ใน Limit: ล้างสีแดงและซ่อนข้อความเตือน
+                    countElement.style.color = ''; // หรือตั้งเป็น 'initial'
+                    if (warningElement) {
+                        warningElement.textContent = '';
+                    }
+                }
             }
         }
 
@@ -409,8 +461,6 @@
             container.innerHTML = badgesHtml;
         }
 
-
-
         document.addEventListener('DOMContentLoaded', () => {
             const dropzoneElement = document.getElementById('image-dropzone');
             const convertButton = document.getElementById('convert-button');
@@ -419,6 +469,7 @@
             const resizeSizeSelect = document.getElementById('resize-size');
             const jpegQualitySelect = document.getElementById('jpeg-quality');
 
+            updateFileCount(); // เรียกใช้ฟังก์ชันเพื่อแสดงจำนวนไฟล์ที่อัปโหลด
             updateSupportTags(); // เรียกใช้ฟังก์ชันเพื่อแสดงนามสกุลไฟล์ที่รองรับ
 
             // Initialize Dropzone
@@ -428,9 +479,27 @@
                 acceptedFiles: IMAGE_EXTENSIONS_ARRAY.join(','), // ใช้ String ที่สร้างจาก Array
                 addRemoveLinks: true,
                 dictDefaultMessage: "",
+                maxFiles: 1000, // กำหนดจำนวนไฟล์สูงสุดที่ Dropzone จะรับ
+                dictMaxFilesExceeded: "You can only upload a maximum of 1000 files.", // ข้อความเมื่อเกินจำนวนไฟล์
                 init: function () {
                     const myDropzone = this;
                     myDropzone.on("addedfile", file => {
+                        // ตรวจสอบว่าไฟล์ที่ถูกเพิ่มเข้ามานั้น ไม่ได้ทำให้จำนวนไฟล์เกินขีดจำกัด
+                        if (myDropzone.files.length > myDropzone.options.maxFiles) {
+                            myDropzone.removeFile(file);
+                            return;
+                        }
+
+                        // ⭐ LOGIC ใหม่: ตรวจสอบนามสกุลไฟล์ซ้ำ (Safeguard) และจัดการ Limit ⭐
+                        const fileName = file.name.toLowerCase();
+                        const isSupported = IMAGE_EXTENSIONS_ARRAY.some(ext => fileName.endsWith(ext));
+                        if (!isSupported) {
+                            myDropzone.removeFile(file);
+                            showErrorToast(`Unsupported file type: ${file.name}`);
+                            return;
+                        }
+
+                        // อัปเดต Array และตัวนับ (จากโค้ดเดิมของคุณ)
                         uploadedFiles.push(file);
                         updateFileCount();
                     });
@@ -446,7 +515,7 @@
 
             convertButton.addEventListener('click', async () => {
                 if (uploadedFiles.length === 0) {
-                    alert("Please upload at least one image.");
+                    showErrorToast("Please upload at least one image.");
                     return;
                 }
 
@@ -465,7 +534,7 @@
 
                 for (const file of uploadedFiles) {
                     try {
-                        // 1. อ่านไฟล์เป็น Image
+                        // 1. โหลดภาพ
                         const img = await new Promise((resolve, reject) => {
                             const reader = new FileReader();
                             reader.onload = (e) => {
@@ -532,7 +601,7 @@
 
                     } catch (error) {
                         console.error("Error during image resize:", error);
-                        alert(`An error occurred while processing ${file.name}.`);
+                        showErrorToast(`An error occurred while processing ${file.name}.`);
                     }
                 }
 
@@ -566,14 +635,14 @@
                         })
                         .catch(error => {
                             console.error("Error saving image:", error);
-                            alert("Could not save the image.");
+                            showErrorToast("Could not save the image.");
                         });
                 }
             });
 
             saveAllButton.addEventListener('click', async () => {
                 if (convertedFiles.length === 0) {
-                    alert("No files to download.");
+                    showErrorToast("No files to download.");
                     return;
                 }
 
@@ -601,7 +670,7 @@
             if (fbIgConvertBtn) {
                 fbIgConvertBtn.addEventListener('click', async () => {
                     if (uploadedFiles.length === 0) {
-                        alert("Please upload at least one image.");
+                        showErrorToast("Please upload at least one image.");
                         return;
                     }
 
@@ -688,7 +757,7 @@
                             }
                         } catch (error) {
                             console.error("Error during FB/IG image resize:", error);
-                            alert(`An error occurred while processing ${file.name}.`);
+                            showErrorToast(`An error occurred while processing ${file.name}.`);
                         }
                     }
 
@@ -698,6 +767,15 @@
                     fbIgConvertBtn.disabled = false;
                     saveAllButton.style.display = 'block';
                 });
+            }
+        });
+
+        window.addEventListener('beforeunload', function (e) {
+            const currentFileCount = uploadedFiles.length; 
+            if (currentFileCount > 0) {
+                e.preventDefault();
+                e.returnValue = 'You have selected ' + currentFileCount + ' files that have not been processed. Are you sure you want to leave?';
+                return 'You have selected ' + currentFileCount + ' files that have not been processed. Are you sure you want to leave?';
             }
         });
     </script>
