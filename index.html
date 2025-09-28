@@ -267,6 +267,10 @@
         footer img {
             filter: grayscale(1) brightness(0.7);
         }
+
+        .dz-details {
+            display: none !important;
+        }
     </style>
 </head>
 
@@ -290,10 +294,16 @@
                                 <p class="text-muted">(Supports multiple image files)</p>
                             </div>
                         </div>
+                        <div>
+                            <label class="form-label mt-3">You've selected <span class="text-muted" id="count_select">0 </span> files</label>
+                        </div>
+                        <div>
+                            <label class="form-label mt-3">Supported formats include:</label><br>
+                            <span id="file_support_tags"></span>
+                        </div>
                     </div>
                 </div>
             </div>
-
             <div class="col-lg-4 col-md-12 column">
                 <div class="card h-100">
                     <div class="card-header bg-success text-white">
@@ -376,8 +386,30 @@
     <script>
 
         Dropzone.autoDiscover = false;
-        const uploadedFiles = [];
-        const convertedFiles = []; // Stores objects with { file: File, dataUrl: String }
+        const FILE_LIMIT = 100;
+        const uploadedFiles = []; // Stores the original uploaded files
+        const convertedFiles = [];  // Stores objects with { file: File, dataUrl: String }
+        const IMAGE_EXTENSIONS_ARRAY = [".jpg", ".jpeg", ".png", ".webp"]; // สร้าง Array สำหรับเก็บนามสกุลไฟล์
+
+        // ฟังก์ชันสำหรับอัปเดตจำนวนไฟล์ที่อัปโหลด
+        function updateFileCount() {
+            const countElement = document.getElementById('count_select');
+            if (countElement) {
+                countElement.textContent = uploadedFiles.length;
+            }
+        }
+
+        // ฟังก์ชันสำหรับอัปเดต Bootstrap Badge
+        function updateSupportTags() {
+            const container = document.getElementById('file_support_tags');
+            if (!container) return;
+
+            // ใช้ Array ต้นฉบับในการสร้าง Badges
+            const badgesHtml = IMAGE_EXTENSIONS_ARRAY.map(ext => `<span class="badge rounded-pill text-bg-primary me-1">${ext.toUpperCase()}</span>`).join('');
+            container.innerHTML = badgesHtml;
+        }
+
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const dropzoneElement = document.getElementById('image-dropzone');
@@ -387,22 +419,26 @@
             const resizeSizeSelect = document.getElementById('resize-size');
             const jpegQualitySelect = document.getElementById('jpeg-quality');
 
+            updateSupportTags(); // เรียกใช้ฟังก์ชันเพื่อแสดงนามสกุลไฟล์ที่รองรับ
+
             // Initialize Dropzone
             new Dropzone(dropzoneElement, {
                 url: "#", // Dummy URL, as we process client-side
                 autoProcessQueue: false,
-                acceptedFiles: "image/*",
+                acceptedFiles: IMAGE_EXTENSIONS_ARRAY.join(','), // ใช้ String ที่สร้างจาก Array
                 addRemoveLinks: true,
                 dictDefaultMessage: "",
                 init: function () {
                     const myDropzone = this;
                     myDropzone.on("addedfile", file => {
                         uploadedFiles.push(file);
+                        updateFileCount();
                     });
                     myDropzone.on("removedfile", file => {
                         const index = uploadedFiles.indexOf(file);
                         if (index > -1) {
                             uploadedFiles.splice(index, 1);
+                            updateFileCount();
                         }
                     });
                 }
