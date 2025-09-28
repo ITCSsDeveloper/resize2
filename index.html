@@ -5,9 +5,269 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Image Resize</title>
-    <link href="./bootstrap.min.css" rel="stylesheet" />
-    <link href="./dropzone.min.css" rel="stylesheet" />
-    <link href="./styles.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            background: #f6f7f9;
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            color: #23272f;
+        }
+
+        .container-fluid {
+            max-width: 1100px;
+        }
+
+        h1 {
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #23272f;
+            margin-bottom: 2.5rem;
+        }
+
+        .card {
+            border-radius: 16px;
+            border: none;
+            box-shadow: 0 2px 12px 0 rgba(30, 41, 59, 0.06);
+            background: #fff;
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 6px 24px 0 rgba(30, 41, 59, 0.10);
+        }
+
+        .card-header {
+            border-radius: 16px 16px 0 0 !important;
+            font-weight: 600;
+            font-size: 1.08rem;
+            background: transparent !important;
+            color: #23272f !important;
+            border-bottom: none;
+            padding-bottom: 0.5rem;
+        }
+
+        .card-body {
+            background: #fff;
+            border-radius: 0 0 16px 16px;
+            padding-top: 1.1rem;
+            padding-bottom: 1.1rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-select,
+        .btn {
+            border-radius: 10px;
+            font-size: 1rem;
+            border: 1.5px solid #e5e7eb;
+            background: #f8fafc;
+            color: #23272f;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .form-select:focus,
+        .btn:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 2px #6366f133;
+            background: #fff;
+        }
+
+        .btn-lg {
+            font-size: 1.08rem;
+            padding: 0.7rem 1.5rem;
+            font-weight: 500;
+        }
+
+        .btn-success,
+        .btn-info {
+            background: #6366f1 !important;
+            color: #fff !important;
+            border: none;
+            box-shadow: 0 2px 8px 0 rgba(99, 102, 241, 0.08);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-success:hover,
+        .btn-info:hover {
+            background: #4338ca !important;
+            box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.15);
+        }
+
+        .btn-secondary {
+            background: #e5e7eb !important;
+            color: #23272f !important;
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1 !important;
+            color: #23272f !important;
+        }
+
+        .btn-primary {
+            background: #23272f !important;
+            color: #fff !important;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #6366f1 !important;
+            color: #fff !important;
+        }
+
+        .dropzone {
+            border: 2px dashed #e5e7eb;
+            border-radius: 14px;
+            background: #f8fafc;
+            padding: 32px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+            min-height: 160px;
+        }
+
+        .dropzone:hover,
+        .dropzone.dz-drag-hover {
+            border-color: #6366f1;
+            background: #f1f5f9;
+        }
+
+        .dz-message h4 {
+            color: #6366f1;
+            font-weight: 600;
+            font-size: 1.15rem;
+        }
+
+        .dz-message p {
+            color: #64748b;
+            font-size: 0.98rem;
+        }
+
+        .image-preview-item {
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 10px 8px 8px 8px;
+            margin-bottom: 14px;
+            background: #f8fafc;
+            box-shadow: 0 1px 4px 0 rgba(99, 102, 241, 0.04);
+            transition: box-shadow 0.2s;
+        }
+
+        .image-preview-item:hover {
+            box-shadow: 0 4px 16px 0 rgba(99, 102, 241, 0.10);
+        }
+
+        .image-preview-item img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 10px auto;
+            border-radius: 8px;
+            box-shadow: 0 1px 4px 0 rgba(99, 102, 241, 0.06);
+        }
+
+        .image-preview-item .btn {
+            border-radius: 8px;
+            font-size: 0.97rem;
+            padding: 0.32rem 0.9rem;
+        }
+
+        #output-previews {
+            background: #f8fafc;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 12px;
+        }
+
+        @media (max-width: 767.98px) {
+            .column-container {
+                flex-direction: column;
+            }
+
+            .column {
+                margin-bottom: 20px;
+            }
+        }
+
+        .dz-progress {
+            display: none !important;
+        }
+
+        #output-previews {
+            scrollbar-width: thin;
+            scrollbar-color: #6366f1 #f8fafc;
+        }
+
+        #output-previews::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #output-previews::-webkit-scrollbar-thumb {
+            background: #6366f1;
+            border-radius: 8px;
+        }
+
+        #output-previews::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+
+        #image-dropzone .dz-preview {
+            width: 80px;
+            height: 80px;
+            margin: 8px;
+            display: inline-block;
+            vertical-align: top;
+        }
+
+        #image-dropzone .dz-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #image-dropzone .dz-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+
+        #image-dropzone {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 160px;
+            max-height: 220px;
+            overflow-y: auto;
+            padding-bottom: 8px;
+        }
+
+        #image-dropzone .dz-message {
+            width: 100%;
+            flex-basis: 100%;
+        }
+
+        footer {
+            background: none;
+            color: #64748b;
+            font-size: 1rem;
+            border-top: none;
+            margin-top: 2.5rem;
+        }
+
+        footer img {
+            filter: grayscale(1) brightness(0.7);
+        }
+    </style>
 </head>
 
 <body>
@@ -102,17 +362,309 @@
 
     <footer class="text-center py-3 mt-5">
         <div class="d-flex justify-content-center align-items-center gap-2">
-            <img src="./GitHub-Mark.png" alt="GitHub Logo"
-                width="28" height="28" style="vertical-align: middle" />
+            <img src="./GitHub-Mark.png" alt="GitHub Logo" width="28" height="28" style="vertical-align: middle" />
             <span class="ms-2">Powered by GitHub Copilot &copy; 2025</span>
         </div>
     </footer>
 
-    <script src="./bootstrap.bundle.min.js"></script>
-    <script src="./dropzone.min.js"></script>
-    <script src="./jszip.min.js"></script>
-    <script src="./FileSaver.min.js"></script>
-    <script src="./app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+    <script>
+
+        Dropzone.autoDiscover = false;
+        const uploadedFiles = [];
+        const convertedFiles = []; // Stores objects with { file: File, dataUrl: String }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropzoneElement = document.getElementById('image-dropzone');
+            const convertButton = document.getElementById('convert-button');
+            const saveAllButton = document.getElementById('save-all-button');
+            const outputPreviews = document.getElementById('output-previews');
+            const resizeSizeSelect = document.getElementById('resize-size');
+            const jpegQualitySelect = document.getElementById('jpeg-quality');
+
+            // Initialize Dropzone
+            new Dropzone(dropzoneElement, {
+                url: "#", // Dummy URL, as we process client-side
+                autoProcessQueue: false,
+                acceptedFiles: "image/*",
+                addRemoveLinks: true,
+                dictDefaultMessage: "",
+                init: function () {
+                    const myDropzone = this;
+                    myDropzone.on("addedfile", file => {
+                        uploadedFiles.push(file);
+                    });
+                    myDropzone.on("removedfile", file => {
+                        const index = uploadedFiles.indexOf(file);
+                        if (index > -1) {
+                            uploadedFiles.splice(index, 1);
+                        }
+                    });
+                }
+            });
+
+            convertButton.addEventListener('click', async () => {
+                if (uploadedFiles.length === 0) {
+                    alert("Please upload at least one image.");
+                    return;
+                }
+
+                const convertSpinner = document.getElementById('convert-spinner');
+                const convertText = document.getElementById('convert-text');
+                convertSpinner.classList.remove('d-none');
+                convertText.textContent = "Converting...";
+                convertButton.disabled = true;
+
+                convertedFiles.length = 0; // Clear previous converted files
+                outputPreviews.innerHTML = ''; // Clear previous previews
+
+                const targetMpx = parseFloat(resizeSizeSelect.value);
+                const jpegQuality = parseInt(jpegQualitySelect.value, 10) / 100;
+                const targetPx = Math.sqrt(targetMpx * 1000000); // Calculate dimension for target Mpx
+
+                for (const file of uploadedFiles) {
+                    try {
+                        // 1. อ่านไฟล์เป็น Image
+                        const img = await new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                const image = new Image();
+                                image.onload = () => resolve(image);
+                                image.onerror = reject;
+                                image.src = e.target.result;
+                            };
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                        });
+
+                        // 2. คำนวณขนาดใหม่ (รักษาอัตราส่วน)
+                        let { width, height } = img;
+                        const aspect = width / height;
+                        if (width >= height) {
+                            width = targetPx;
+                            height = Math.round(targetPx / aspect);
+                        } else {
+                            height = targetPx;
+                            width = Math.round(targetPx * aspect);
+                        }
+
+                        // 3. วาดลง Canvas
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // 4. แปลงเป็น Blob (JPEG)
+                        const blob = await new Promise(resolve =>
+                            canvas.toBlob(resolve, 'image/jpeg', jpegQuality)
+                        );
+
+                        // 5. สร้างไฟล์ใหม่
+                        const resizedFile = new File(
+                            [blob],
+                            file.name.replace(/\.[^/.]+$/, "") + `_resized.jpg`, // ใช้ .jpg เสมอ
+                            { type: 'image/jpeg', lastModified: Date.now() }
+                        );
+
+                        // 6. แสดง preview
+                        const dataUrl = await new Promise(resolve => {
+                            const reader = new FileReader();
+                            reader.onload = e => resolve(e.target.result);
+                            reader.readAsDataURL(resizedFile);
+                        });
+
+                        convertedFiles.push({ file: resizedFile, dataUrl: dataUrl });
+
+                        // Create preview element
+                        const previewItem = document.createElement('div');
+                        previewItem.className = 'image-preview-item card my-2';
+                        previewItem.innerHTML = `
+                        <div class="card-body">
+                            <img src="${dataUrl}" class="img-fluid mb-2" alt="Resized image preview">
+                            <p class="card-text text-muted small">${resizedFile.name}</p>
+                            <button class="btn btn-sm btn-primary view-image me-2" data-src="${dataUrl}">View</button>
+                            <button class="btn btn-sm btn-secondary save-image" data-filename="${resizedFile.name}" data-src="${dataUrl}">Save</button>
+                        </div>
+                    `;
+                        outputPreviews.appendChild(previewItem);
+
+                    } catch (error) {
+                        console.error("Error during image resize:", error);
+                        alert(`An error occurred while processing ${file.name}.`);
+                    }
+                }
+
+                convertSpinner.classList.add('d-none');
+                convertText.textContent = "Convert";
+                convertButton.disabled = false;
+                saveAllButton.style.display = 'block';
+            });
+
+            // Event delegation for View and Save buttons
+            outputPreviews.addEventListener('click', (event) => {
+                if (event.target.classList.contains('view-image')) {
+                    const dataSrc = event.target.dataset.src;
+                    // สร้าง Blob URL แทนการเปิด data URL ตรง ๆ
+                    fetch(dataSrc)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            const blobUrl = URL.createObjectURL(blob);
+                            window.open(blobUrl, '_blank');
+                            // ลบ blob url เมื่อแท็บถูกปิด (optional)
+                            setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+                        });
+                } else if (event.target.classList.contains('save-image')) {
+                    const fileName = event.target.dataset.filename;
+                    const dataSrc = event.target.dataset.src;
+                    // Convert data URL to Blob for saving
+                    fetch(dataSrc)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            saveAs(blob, fileName);
+                        })
+                        .catch(error => {
+                            console.error("Error saving image:", error);
+                            alert("Could not save the image.");
+                        });
+                }
+            });
+
+            saveAllButton.addEventListener('click', async () => {
+                if (convertedFiles.length === 0) {
+                    alert("No files to download.");
+                    return;
+                }
+
+                const saveSpinner = document.getElementById('save-spinner');
+                const saveText = document.getElementById('save-text');
+                saveSpinner.classList.remove('d-none');
+                saveText.textContent = "Zipping...";
+                saveAllButton.disabled = true;
+
+                const zip = new JSZip();
+                convertedFiles.forEach(item => {
+                    zip.file(item.file.name, item.file);
+                });
+
+                const zipBlob = await zip.generateAsync({ type: "blob" });
+                saveAs(zipBlob, "resized_images.zip");
+
+                saveSpinner.classList.add('d-none');
+                saveText.textContent = "Download All (.zip)";
+                saveAllButton.disabled = false;
+            });
+
+            // เพิ่มปุ่ม Convert for Facebook & IG
+            const fbIgConvertBtn = document.getElementById('fb-ig-convert-btn');
+            if (fbIgConvertBtn) {
+                fbIgConvertBtn.addEventListener('click', async () => {
+                    if (uploadedFiles.length === 0) {
+                        alert("Please upload at least one image.");
+                        return;
+                    }
+
+                    const outputPreviews = document.getElementById('output-previews');
+                    const saveAllButton = document.getElementById('save-all-button');
+                    const convertButton = document.getElementById('convert-button');
+                    const convertSpinner = document.getElementById('convert-spinner');
+                    const convertText = document.getElementById('convert-text');
+
+                    convertSpinner.classList.remove('d-none');
+                    convertText.textContent = "Converting...";
+                    convertButton.disabled = true;
+                    fbIgConvertBtn.disabled = true;
+
+                    convertedFiles.length = 0;
+                    outputPreviews.innerHTML = '';
+
+                    // Facebook/IG recommend 2048px max width/height, quality 99
+                    const targetPx = 2048;
+                    const qualityOptions = [0.90];
+
+                    for (const file of uploadedFiles) {
+                        try {
+                            const img = await new Promise((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (e) => {
+                                    const image = new Image();
+                                    image.onload = () => resolve(image);
+                                    image.onerror = reject;
+                                    image.src = e.target.result;
+                                };
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                            });
+
+                            let { width, height } = img;
+                            let newWidth = width, newHeight = height;
+                            if (width > height) {
+                                newWidth = targetPx;
+                                newHeight = Math.round(targetPx * height / width);
+                            } else {
+                                newHeight = targetPx;
+                                newWidth = Math.round(targetPx * width / height);
+                            }
+
+                            for (const q of qualityOptions) {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = newWidth;
+                                canvas.height = newHeight;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                                const blob = await new Promise(resolve =>
+                                    canvas.toBlob(resolve, 'image/jpeg', q)
+                                );
+
+                                const qualityLabel = Math.round(q * 100);
+                                const resizedFile = new File(
+                                    [blob],
+                                    file.name.replace(/\.[^/.]+$/, "") + `_fb-ig_${qualityLabel}.jpg`,
+                                    { type: 'image/jpeg', lastModified: Date.now() }
+                                );
+
+                                const dataUrl = await new Promise(resolve => {
+                                    const reader = new FileReader();
+                                    reader.onload = e => resolve(e.target.result);
+                                    reader.readAsDataURL(resizedFile);
+                                });
+
+                                convertedFiles.push({ file: resizedFile, dataUrl: dataUrl });
+
+                                // Create preview element
+                                const previewItem = document.createElement('div');
+                                previewItem.className = 'image-preview-item card my-2';
+                                previewItem.innerHTML = `
+                                <div class="card-body">
+                                    <img src="${dataUrl}" class="img-fluid mb-2" alt="Resized image preview">
+                                    <p class="card-text text-muted small">${resizedFile.name}</p>
+                                    <button class="btn btn-sm btn-primary view-image me-2" data-src="${dataUrl}">View</button>
+                                    <button class="btn btn-sm btn-secondary save-image" data-filename="${resizedFile.name}" data-src="${dataUrl}">Save</button>
+                                </div>
+                            `;
+                                outputPreviews.appendChild(previewItem);
+                            }
+                        } catch (error) {
+                            console.error("Error during FB/IG image resize:", error);
+                            alert(`An error occurred while processing ${file.name}.`);
+                        }
+                    }
+
+                    convertSpinner.classList.add('d-none');
+                    convertText.textContent = "Convert";
+                    convertButton.disabled = false;
+                    fbIgConvertBtn.disabled = false;
+                    saveAllButton.style.display = 'block';
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>
