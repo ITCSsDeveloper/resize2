@@ -351,6 +351,14 @@
                                 <option value="25">25%</option>
                             </select>
                         </div>
+                        <div class="mb-3">
+                            <label for="sharpness" class="form-label">Sharpness (%):</label>
+                            <div class="d-flex align-items-center">
+                                <input type="range" id="sharpness" class="form-range me-3" min="0" max="100" value="0"
+                                    step="1" style="width: 70%;">
+                                <span id="sharpness-value" style="min-width: 40px;">0%</span>
+                            </div>
+                        </div>
                         <button id="convert-button" class="btn btn-success btn-lg mt-auto">
                             <span id="convert-spinner" class="spinner-border spinner-border-sm d-none" role="status"
                                 aria-hidden="true"></span>
@@ -464,11 +472,16 @@
         }
 
         // Utility: Resize image and return File & DataURL
-        async function resizeImage(img, fileName, width, height, quality, suffix = '_resized') {
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        async function resizeImage(img, fileName, width, height, quality, suffix = '_resized', sharpness = 0) {
+            let canvas;
+            if (sharpness > 0) {
+                canvas = webglSharpen(img, width, height, sharpness);
+            } else {
+                canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            }
             const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
             const newFileName = fileName.replace(/\.[^/.]+$/, "") + `${suffix}.jpg`;
             const resizedFile = new File([blob], newFileName, { type: 'image/jpeg', lastModified: Date.now() });
@@ -506,6 +519,98 @@
             window.location.reload();
         }
 
+        // Utility: Sharpen image using WebGL
+        function webglSharpen(img, width, height, sharpness) {
+            // Create canvas and get WebGL context
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+            if (!gl) return null;
+
+            // Vertex shader
+            const vsSource = `
+        attribute vec2 a_position;
+        attribute vec2 a_texCoord;
+        varying vec2 v_texCoord;
+        void main() {
+            gl_Position = vec4(a_position, 0, 1);
+            v_texCoord = a_texCoord;
+        }
+    `;
+            // Fragment shader with sharpen kernel
+            const fsSource = `
+        precision mediump float;
+        varying vec2 v_texCoord;
+        uniform sampler2D u_image;
+        uniform float u_sharp;
+        uniform vec2 u_texSize;
+        void main() {
+            vec2 onePixel = 1.0 / u_texSize;
+            vec4 color = texture2D(u_image, v_texCoord) * (1.0 + 4.0 * u_sharp);
+            color -= texture2D(u_image, v_texCoord + onePixel * vec2(0, 1)) * u_sharp;
+            color -= texture2D(u_image, v_texCoord + onePixel * vec2(0, -1)) * u_sharp;
+            color -= texture2D(u_image, v_texCoord + onePixel * vec2(1, 0)) * u_sharp;
+            color -= texture2D(u_image, v_texCoord + onePixel * vec2(-1, 0)) * u_sharp;
+            gl_FragColor = color;
+        }
+    `;
+            function compileShader(type, source) {
+                const shader = gl.createShader(type);
+                gl.shaderSource(shader, source);
+                gl.compileShader(shader);
+                return shader;
+            }
+            const vs = compileShader(gl.VERTEX_SHADER, vsSource);
+            const fs = compileShader(gl.FRAGMENT_SHADER, fsSource);
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            gl.useProgram(program);
+
+            // Set up rectangle covering the canvas
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                -1, -1,  1, -1,  -1, 1,
+                -1,  1,  1, -1,   1, 1
+            ]), gl.STATIC_DRAW);
+            const positionLoc = gl.getAttribLocation(program, 'a_position');
+            gl.enableVertexAttribArray(positionLoc);
+            gl.vertexAttribPointer(positionLoc, 2, gl.FLOAT, false, 0, 0);
+
+            // Texture coordinates (แก้ไขให้ตรงกับ Canvas: flip Y)
+            const texCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+                0, 1, 1, 1, 0, 0,
+                0, 0, 1, 1, 1, 0
+            ]), gl.STATIC_DRAW);
+            const texCoordLoc = gl.getAttribLocation(program, 'a_texCoord');
+            gl.enableVertexAttribArray(texCoordLoc);
+            gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+
+            // Upload image as texture
+            const texture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+            // Set uniforms
+            gl.uniform1f(gl.getUniformLocation(program, 'u_sharp'), sharpness / 100.0 * 0.5); // scale sharpness
+            gl.uniform2f(gl.getUniformLocation(program, 'u_texSize'), width, height);
+
+            // Draw
+            gl.viewport(0, 0, width, height);
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            return canvas;
+        }
+
         // Initialize Dropzone and event listeners
         document.addEventListener('DOMContentLoaded', () => {
             const dropzoneElement = document.getElementById('image-dropzone');
@@ -514,11 +619,19 @@
             const outputPreviews = document.getElementById('output-previews');
             const resizeSizeSelect = document.getElementById('resize-size');
             const jpegQualitySelect = document.getElementById('jpeg-quality');
+            const sharpnessRange = document.getElementById('sharpness');
+            const sharpnessValue = document.getElementById('sharpness-value');
             const fbIgConvertBtn = document.getElementById('fb-ig-convert-btn');
             const resetButton = document.getElementById('reset-button');
 
             updateFileCount();
             updateSupportTags();
+
+            // แสดงค่า sharpness ขณะเลื่อน
+            sharpnessRange.addEventListener('input', () => {
+                sharpnessValue.textContent = `${sharpnessRange.value}%`;
+            });
+            sharpnessValue.textContent = `${sharpnessRange.value}%`;
 
             // Dropzone setup
             new Dropzone(dropzoneElement, {
@@ -571,6 +684,7 @@
 
                 const targetMpx = parseFloat(resizeSizeSelect.value);
                 const jpegQuality = parseInt(jpegQualitySelect.value, 10) / 100;
+                const sharpness = parseInt(sharpnessRange.value, 10);
                 const targetPx = Math.sqrt(targetMpx * 1000000);
 
                 for (const file of uploadedFiles) {
@@ -585,7 +699,7 @@
                             height = targetPx;
                             width = Math.round(targetPx * aspect);
                         }
-                        const result = await resizeImage(img, file.name, width, height, jpegQuality);
+                        const result = await resizeImage(img, file.name, width, height, jpegQuality, '_resized', sharpness);
                         convertedFiles.push(result);
                         outputPreviews.appendChild(createPreview(result));
                     } catch (error) {
