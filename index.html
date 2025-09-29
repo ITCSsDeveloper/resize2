@@ -670,7 +670,7 @@
                 maxFiles: 1000,
                 dictMaxFilesExceeded: "You can only upload a maximum of 1000 files.",
                 init: function () {
-                    this.on("addedfile", file => {
+                    this.on("addedfile", async file => {
                         if (this.files.length > this.options.maxFiles) {
                             this.removeFile(file);
                             return;
@@ -684,6 +684,25 @@
                         }
                         uploadedFiles.push(file);
                         updateFileCount();
+
+                        // Custom preview for HEIC/HEIF
+                        const ext = fileName.split('.').pop();
+                        if (ext === "heic" || ext === "heif") {
+                            try {
+                                const jpegBlob = await heic2any({
+                                    blob: file,
+                                    toType: "image/jpeg",
+                                    quality: 0.8
+                                });
+                                const reader = new FileReader();
+                                reader.onload = e => {
+                                    this.emit("thumbnail", file, e.target.result);
+                                };
+                                reader.readAsDataURL(jpegBlob);
+                            } catch (err) {
+                                showErrorToast("Cannot preview HEIC/HEIF file.");
+                            }
+                        }
                     });
                     this.on("removedfile", file => {
                         const index = uploadedFiles.indexOf(file);
