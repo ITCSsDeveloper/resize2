@@ -279,6 +279,7 @@
             display: none !important;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any/dist/heic2any.min.js"></script>
 </head>
 
 <body>
@@ -422,7 +423,7 @@
     <script>
         Dropzone.autoDiscover = false;
         const FILE_LIMIT = 30;
-        const IMAGE_EXTENSIONS_ARRAY = [".jpg", ".jpeg", ".png", ".webp"];
+        const IMAGE_EXTENSIONS_ARRAY = [".jpg", ".jpeg", ".png",".heic", ".heif", ".webp"];
         const uploadedFiles = [];
         const convertedFiles = [];
 
@@ -462,18 +463,39 @@
             }
         }
 
-        // Utility: Load image from file
+        // Utility: Load image from file (รองรับ HEIC/HEIF)
         function loadImage(file) {
             return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = reject;
-                    img.src = e.target.result;
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
+                const ext = file.name.toLowerCase().split('.').pop();
+                if (ext === "heic" || ext === "heif") {
+                    // ใช้ heic2any แปลงเป็น JPEG ก่อน
+                    heic2any({
+                        blob: file,
+                        toType: "image/jpeg",
+                        quality: 0.95
+                    }).then(jpegBlob => {
+                        const reader = new FileReader();
+                        reader.onload = e => {
+                            const img = new Image();
+                            img.onload = () => resolve(img);
+                            img.onerror = reject;
+                            img.src = e.target.result;
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(jpegBlob);
+                    }).catch(reject);
+                } else {
+                    // ไฟล์ทั่วไป
+                    const reader = new FileReader();
+                    reader.onload = e => {
+                        const img = new Image();
+                        img.onload = () => resolve(img);
+                        img.onerror = reject;
+                        img.src = e.target.result;
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                }
             });
         }
 
